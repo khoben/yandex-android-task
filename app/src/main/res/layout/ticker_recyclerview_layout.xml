@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="stock"
+            type="com.khoben.ticker.model.Stock" />
+    </data>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/stock_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="8dp"
+        app:cardUseCompatPadding="true"
+        app:cardElevation="2dp"
+        >
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/stock_logo"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:scaleType="fitCenter"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintDimensionRatio="H,1:1"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:shapeAppearanceOverlay="@style/RoundedImageView"
+                tools:ignore="ContentDescription"
+                tools:srcCompat="@drawable/image_placeholder" />
+
+            <TextView
+                android:id="@+id/ticker_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:singleLine="true"
+                android:text="@{stock.ticker}"
+                android:textAppearance="?textAppearanceSubtitle1"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toTopOf="@+id/company_name"
+                app:layout_constraintEnd_toStartOf="@+id/favourite_btn"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintStart_toEndOf="@+id/stock_logo"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="AAPL" />
+
+            <Button
+                android:id="@+id/favourite_btn"
+                android:background="@android:color/transparent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:insetLeft="0dp"
+                android:insetTop="0dp"
+                android:insetRight="0dp"
+                android:insetBottom="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:padding="0dp"
+                app:icon="@drawable/ic_star_24dp"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                app:iconTint="@color/favorite_inactive_color"
+                app:layout_constraintBottom_toBottomOf="@+id/ticker_name"
+                app:layout_constraintStart_toEndOf="@+id/ticker_name"
+                app:layout_constraintTop_toTopOf="@+id/ticker_name" />
+
+            <TextView
+                android:id="@+id/company_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="@{stock.companyName}"
+                android:textAppearance="?textAppearanceBody2"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/daily_price_change"
+                app:layout_constraintStart_toStartOf="@+id/ticker_name"
+                app:layout_constraintTop_toBottomOf="@+id/ticker_name"
+                tools:text="Apple Inc." />
+
+
+            <TextView
+                android:id="@+id/current_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:textAppearance="?textAppearanceSubtitle1"
+                android:textStyle="bold"
+                app:current_price="@{stock}"
+                app:layout_constraintBottom_toTopOf="@+id/daily_price_change"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="$10000000.3" />
+
+            <TextView
+                android:id="@+id/daily_price_change"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:textAppearance="?textAppearanceBody2"
+                app:daily_price_change="@{stock}"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/current_price"
+                app:layout_constraintTop_toBottomOf="@+id/current_price"
+                tools:text="-0.7%" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
+</layout>
