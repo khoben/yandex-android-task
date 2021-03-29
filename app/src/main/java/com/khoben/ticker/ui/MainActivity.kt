@@ -52,7 +52,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
-        sharedViewModel.checkAndFillDatabase()
     }
 
     private fun initAndShowFragment() {

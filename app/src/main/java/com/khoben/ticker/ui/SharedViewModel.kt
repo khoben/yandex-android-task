@@ -20,6 +20,10 @@ class SharedViewModel(
 ) : ViewModel() {
     private val stockDao = db.stockDao()
 
+    init {
+        checkAndFillDatabase()
+    }
+
     val stockList: LiveData<List<Stock>>? = stockDao.all
 
     private val _searchButtonClicked = MutableLiveData<Boolean>()
@@ -49,14 +53,16 @@ class SharedViewModel(
                             .data(it.logo)
                             .build()
                         val drawable = ImageLoader(context).execute(request).drawable
-                        val outputDir =
-                            context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)?.absolutePath!!
-                        val logo = ImageRemoteDownloader.saveImage(
-                            drawable!!.toBitmap(),
-                            outputDir,
-                            it.ticker
-                        )
-                        stockDao.insert(it.copy(logo = logo?.absolutePath))
+                        if (drawable != null) {
+                            val outputDir =
+                                context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)?.absolutePath!!
+                            val logo = ImageRemoteDownloader.saveImage(
+                                drawable.toBitmap(),
+                                outputDir,
+                                it.ticker
+                            )
+                            stockDao.insert(it.copy(logo = logo?.absolutePath))
+                        }
                     } else {
                         stockDao.insert(it.copy(logo = ""))
                     }
