@@ -3,10 +3,7 @@ package com.khoben.ticker.ui
 import android.content.Context
 import android.os.Environment
 import androidx.core.graphics.drawable.toBitmap
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import coil.ImageLoader
 import coil.request.ImageRequest
 import com.khoben.ticker.common.ImageRemoteDownloader
@@ -14,6 +11,7 @@ import com.khoben.ticker.common.onIOLaunch
 import com.khoben.ticker.database.AppDatabase
 import com.khoben.ticker.model.Stock
 import com.khoben.ticker.repository.FinnhubRepository
+
 
 class SharedViewModel(
     private val context: Context,
@@ -31,6 +29,12 @@ class SharedViewModel(
 
     private var _firstLoadDatabaseStatus = MutableLiveData<FirstLoadStatus>()
     val firstLoadDatabaseStatus: LiveData<FirstLoadStatus> = _firstLoadDatabaseStatus
+
+    private val queryLiveData = MutableLiveData<String>()
+
+    val lastResultSearch: LiveData<List<Stock>> = Transformations.switchMap(queryLiveData) { v ->
+        stockDao.searchDatabase(v)
+    }
 
     fun checkAndFillDatabase() {
         viewModelScope.onIOLaunch {
@@ -65,11 +69,7 @@ class SharedViewModel(
     fun toggleFavorite(ticker: String) {
         viewModelScope.onIOLaunch {
             stockDao.getByTicker(ticker)?.let {
-                stockDao.update(
-                    it.apply {
-                        isFavourite = !isFavourite
-                    }
-                )
+                stockDao.update(it.apply { isFavourite = !isFavourite })
             }
         }
     }
@@ -78,5 +78,7 @@ class SharedViewModel(
         _searchButtonClicked.value = true
     }
 
-    fun search(query: String) = stockDao.searchDatabase(query)
+    fun search(query: String) {
+        queryLiveData.value = query
+    }
 }

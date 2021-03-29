@@ -84,15 +84,20 @@ class SearchFragment : Fragment(), StockViewListAdapter.StockClickListener {
         })
         binding.searchField.focusAndShowKeyboard()
         initRecyclerView()
+        initObservables()
         binding.searchField.post {
             binding.searchField.compoundDrawables[DRAWABLE_RIGHT].alpha = 0
         }
     }
 
-    private fun trySearchStock(query: String) {
-        sharedViewModel.search(query)?.observe(this, {
+    private fun initObservables() {
+        sharedViewModel.lastResultSearch.observe(viewLifecycleOwner, {
             submitList(it)
         })
+    }
+
+    private fun trySearchStock(query: String) {
+        sharedViewModel.search(query)
     }
 
     private fun initRecyclerView() {
