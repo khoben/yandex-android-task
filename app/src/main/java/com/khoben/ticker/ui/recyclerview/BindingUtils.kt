@@ -6,6 +6,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.databinding.BindingAdapter
+import com.google.android.material.button.MaterialButton
 import com.khoben.ticker.R
 import com.khoben.ticker.common.Utils
 import com.khoben.ticker.common.format
@@ -15,13 +16,15 @@ import timber.log.Timber
 
 @SuppressLint("SetTextI18n")
 @BindingAdapter("current_price")
-fun TextView.setCurrentPrice(stock: Stock) {
+fun TextView.setCurrentPrice(stock: Stock?) {
+    if (stock == null) return
     text = "${stock.currency?.toCurrencySign()}${stock.currentPrice}"
 }
 
 @SuppressLint("SetTextI18n")
 @BindingAdapter("daily_price_change")
-fun TextView.setDailyPriceChange(stock: Stock) {
+fun TextView.setDailyPriceChange(stock: Stock?) {
+    if (stock == null) return
     when {
         stock.priceChangeDailyPercent < 0 -> {
             text =
@@ -41,11 +44,8 @@ fun TextView.setDailyPriceChange(stock: Stock) {
     }
 }
 
-fun ImageView.setImage(path: String?) {
-    if (path != null && Utils.checkIfExists(path)) {
-        setImageBitmap(BitmapFactory.decodeFile(path))
-    } else {
-        setImageDrawable(ContextCompat.getDrawable(context, R.drawable.image_placeholder))
-        Timber.e("Trying to load not existing thumb")
-    }
+@BindingAdapter("is_favourite")
+fun MaterialButton.isFavourite(isFavourite: Boolean) {
+    if (isFavourite) setIconTintResource(R.color.favorite_active_color)
+    else setIconTintResource(R.color.favorite_inactive_color)
 }

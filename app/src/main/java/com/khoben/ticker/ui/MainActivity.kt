@@ -3,17 +3,22 @@ package com.khoben.ticker.ui
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import com.google.android.material.snackbar.Snackbar
 import com.khoben.ticker.R
-import com.khoben.ticker.common.CheckInternetConnection
+import com.khoben.ticker.common.ApiErrorProvider
+import com.khoben.ticker.common.ConnectivityProvider
 import com.khoben.ticker.databinding.ActivityMainBinding
+import com.khoben.ticker.model.FirstLoadStatus
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
     private val sharedViewModel by viewModel<SharedViewModel>()
+
+    private val currentFragment get() = supportFragmentManager.fragments.lastOrNull()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,41 +30,64 @@ class MainActivity : AppCompatActivity() {
 
     private fun initObservables() {
         sharedViewModel.searchButtonClicked.observe(this, { clicked ->
-            Timber.d("clicked = $clicked")
-            if (clicked == true) {
-                supportFragmentManager.beginTransaction()
-                    .replace(R.id.activity_main_container, SearchFragment()).addToBackStack(null)
-                    .commit()
+            if (clicked) {
+                val searchFragment =
+                    supportFragmentManager.findFragmentByTag("search") ?: SearchFragment()
+
+                if (!searchFragment.isAdded) {
+                    supportFragmentManager.beginTransaction()
+                        .add(R.id.activity_main_container, searchFragment, "search")
+                        .addToBackStack(null)
+                        .commit()
+                }
             }
         })
-        sharedViewModel.firstLoadDatabaseStatus.observe(this, {
-            when(it) {
+        sharedViewModel.firstLoadDatabaseStatus.observe(this, { loadingStatus ->
+            when (loadingStatus) {
                 FirstLoadStatus.START_LOADING -> {
-                    binding.loading.visibility = View.VISIBLE
+                    binding.loading.root.visibility = View.VISIBLE
                 }
                 FirstLoadStatus.LOADED -> {
-                    binding.loading.visibility = View.GONE
+                    binding.loading.root.visibility = View.GONE
+                    sharedViewModel.subscribeToSocketEvents()
                 }
             }
         })
-        CheckInternetConnection.observe(this, {
-            when(it) {
-                true -> {
-                    binding.noInternet.visibility = View.GONE
-                }
-                false -> {
-                    binding.noInternet.visibility = View.VISIBLE
+        sharedViewModel.stockClicked.observe(this, { clickedStock ->
+            if (clickedStock != null) {
+                val stockFragment = supportFragmentManager.findFragmentByTag(StockViewFragment.TAG) ?: StockViewFragment.show(clickedStock)
+                if (!stockFragment.isAdded) {
+                    supportFragmentManager.beginTransaction()
+                        .also { ft ->
+                            currentFragment?.let { ft.setMaxLifecycle(it, Lifecycle.State.STARTED) }
+                        }
+                        .add(
+                            R.id.activity_main_container,
+                            stockFragment,
+                            StockViewFragment.TAG
+                        )
+                        .addToBackStack(null)
+                        .commit()
                 }
             }
+        })
+        ConnectivityProvider.observe(this, { hasConnection ->
+            if (hasConnection)
+                binding.noInternet.visibility = View.GONE
+            else
+                binding.noInternet.visibility = View.VISIBLE
+        })
+
+        ApiErrorProvider.observe(this, { apiError ->
+            Snackbar.make(findViewById(android.R.id.content), "API Error: ${apiError.cause}", Snackbar.LENGTH_SHORT)
         })
     }
 
     private fun initAndShowFragment() {
-        var fragment = supportFragmentManager.findFragmentById(R.id.activity_main_container)
-        if (fragment == null) {
-            fragment = MainFragment()
+        if (supportFragmentManager.findFragmentByTag("main") == null) {
+            val mainFragment = MainFragment()
             supportFragmentManager.beginTransaction()
-                .add(R.id.activity_main_container, fragment)
+                .add(R.id.activity_main_container, mainFragment, "main")
                 .commit()
         }
     }

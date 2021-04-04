@@ -2,10 +2,12 @@
 buildscript {
     ext.kotlin_version = "1.4.31"
     ext.koin_version = "3.0.1-beta-2"
-    ext.kotlin_serialization = "1.0.0"
+    ext.kotlin_serialization = '1.1.0'
     ext.retrofit_version = "2.9.0"
-    ext.coroutines_version = "1.0.1"
+    ext.coroutines_version = '1.4.3-native-mt'
     ext.room_version = "2.2.6"
+    ext.okhttp3_version = "4.9.0"
+    ext.scarlet_version = "0.2.4"
     repositories {
         google()
         jcenter()
@@ -24,6 +26,7 @@ allprojects {
         google()
         jcenter()
         mavenCentral()
+        maven { url "https://jitpack.io" }
     }
 }
 

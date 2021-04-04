@@ -7,10 +7,9 @@
     <FrameLayout
         android:id="@+id/no_internet"
         android:layout_width="match_parent"
-        android:layout_height="32dp"
+        android:layout_height="wrap_content"
         android:layout_gravity="top|fill_horizontal"
-        android:background="?colorError"
-        android:visibility="gone"
+        android:background="?colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -21,12 +20,13 @@
             android:layout_gravity="center"
             android:drawablePadding="4dp"
             android:gravity="center"
-            android:text="No Internet Connection"
-            android:textColor="#FFFFFF"
+            android:text="Offline mode"
+            android:textAllCaps="true"
+            android:textColor="?colorOnPrimary"
             android:textStyle="bold" />
     </FrameLayout>
 
-    <FrameLayout
+    <androidx.fragment.app.FragmentContainerView
         android:id="@+id/activity_main_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -35,32 +35,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/no_internet" />
 
-    <FrameLayout
+    <include
         android:id="@+id/loading"
         android:visibility="gone"
+        layout="@layout/loading_layout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/no_internet">
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:orientation="vertical">
-
-            <com.google.android.material.progressindicator.CircularProgressIndicator
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:indeterminate="true"
-                />
-            <androidx.appcompat.widget.AppCompatTextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="First time loading database..."/>
-        </androidx.appcompat.widget.LinearLayoutCompat>
-    </FrameLayout>
+        app:layout_constraintTop_toBottomOf="@+id/no_internet" />
 </androidx.constraintlayout.widget.ConstraintLayout>

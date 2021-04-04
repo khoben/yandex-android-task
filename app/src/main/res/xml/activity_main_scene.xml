@@ -2,13 +2,14 @@
 <MotionScene xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-
     <Transition
         app:constraintSetEnd="@id/end"
         app:constraintSetStart="@id/start">
         <OnSwipe
             app:dragDirection="dragUp"
-            app:touchAnchorId="@+id/stocks" />
+            app:moveWhenScrollAtTop="false"
+            app:touchAnchorId="@+id/view_pager"
+            app:touchAnchorSide="top" />
     </Transition>
 
     <ConstraintSet android:id="@+id/start">

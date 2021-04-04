@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import com.khoben.ticker.database.dao.StockDao
 import com.khoben.ticker.model.Stock
 
-@Database(entities = [Stock::class], version = 4)
+@Database(entities = [Stock::class], version = 5)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun stockDao(): StockDao

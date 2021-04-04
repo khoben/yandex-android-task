@@ -1,6 +1,7 @@
 package com.khoben.ticker.common
 
 import android.content.Context
+import android.content.res.Resources
 import android.util.TypedValue
 import android.view.View
 import android.view.ViewTreeObserver
@@ -10,6 +11,14 @@ import androidx.core.content.ContextCompat
 import java.io.File
 
 object Utils {
+
+    fun Int.dp(): Int {
+        return TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            this.toFloat(),
+            Resources.getSystem().displayMetrics
+        ).toInt()
+    }
 
     fun View.hideKeyboard() {
         val inputMethodManager = ContextCompat.getSystemService(context, InputMethodManager::class.java)!!

@@ -15,14 +15,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="8dp"
-        app:cardUseCompatPadding="true"
         app:cardElevation="2dp"
-        >
+        app:cardUseCompatPadding="true"
+        app:contentPadding="4dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="8dp">
+            android:layout_height="wrap_content">
 
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/stock_logo"
@@ -55,23 +54,15 @@
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="AAPL" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/favourite_btn"
-                android:background="@android:color/transparent"
+                style="@style/TickerAppButtonIcon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
-                android:insetLeft="0dp"
-                android:insetTop="0dp"
-                android:insetRight="0dp"
-                android:insetBottom="0dp"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:padding="0dp"
+                android:background="@android:color/transparent"
                 app:icon="@drawable/ic_star_24dp"
-                app:iconGravity="textStart"
-                app:iconPadding="0dp"
-                app:iconTint="@color/favorite_inactive_color"
+                app:is_favourite="@{stock.favourite}"
                 app:layout_constraintBottom_toBottomOf="@+id/ticker_name"
                 app:layout_constraintStart_toEndOf="@+id/ticker_name"
                 app:layout_constraintTop_toTopOf="@+id/ticker_name" />
@@ -81,6 +72,10 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
+                android:ellipsize="marquee"
+                android:marqueeRepeatLimit="2"
+                android:scrollHorizontally="true"
+                android:singleLine="true"
                 android:text="@{stock.companyName}"
                 android:textAppearance="?textAppearanceBody2"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -91,6 +86,7 @@
 
 
             <TextView
+                android:animateLayoutChanges="true"
                 android:id="@+id/current_price"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import
+            alias="Convertor"
+            type="com.khoben.ticker.common.ConversionExtKt" />
+
+        <variable
+            name="vm"
+            type="com.khoben.ticker.ui.StockViewModel" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/current_price"
+            android:animateLayoutChanges="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:textAppearance="?textAppearanceSubtitle1"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:current_price="@{vm.stockData}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="$10000000.3" />
+
+        <TextView
+            android:id="@+id/daily_price_change"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:textAppearance="?textAppearanceBody2"
+            android:textSize="18sp"
+            app:daily_price_change="@{vm.stockData}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/current_price"
+            tools:text="-0.7%" />
+
+        <com.robinhood.spark.SparkView
+            android:id="@+id/stock_chart"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_margin="8dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            app:layout_constraintBottom_toTopOf="@+id/period_selecton_guideline"
+            app:layout_constraintTop_toBottomOf="@+id/daily_price_change"
+            app:spark_scrubEnabled="true" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/scrub_text_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            app:cardBackgroundColor="?colorOnSurface"
+            app:cardCornerRadius="4dp"
+            app:cardUseCompatPadding="true"
+            app:contentPadding="4dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/stock_chart">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/chart_scrub_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textAlignment="center"
+                android:textColor="?colorSurface"
+                tools:text="100$" />
+        </androidx.cardview.widget.CardView>
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/period_selecton_guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.8" />
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/toggle_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:checkedButton="@id/day_period_btn"
+            app:layout_constraintBottom_toTopOf="@+id/buy_btn_guideline"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/period_selecton_guideline"
+            app:singleSelection="true"
+            app:selectionRequired="true">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/day_period_btn"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:text="D"
+                android:textSize="18sp"
+                app:layout_constraintBottom_toTopOf="@+id/buy_btn_guideline"
+                app:layout_constraintEnd_toStartOf="@+id/week_period_btn"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintHorizontal_chainStyle="packed"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/period_selecton_guideline" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/week_period_btn"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:text="W"
+                android:textSize="18sp"
+                app:layout_constraintBottom_toTopOf="@+id/buy_btn_guideline"
+                app:layout_constraintEnd_toStartOf="@+id/month_period_btn"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toEndOf="@+id/day_period_btn"
+                app:layout_constraintTop_toTopOf="@+id/period_selecton_guideline" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/month_period_btn"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:text="M"
+                android:textSize="18sp"
+                app:layout_constraintBottom_toTopOf="@+id/buy_btn_guideline"
+                app:layout_constraintEnd_toStartOf="@+id/sixmonth_period_btn"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toEndOf="@+id/week_period_btn"
+                app:layout_constraintTop_toTopOf="@+id/period_selecton_guideline" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/sixmonth_period_btn"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:text="6M"
+                android:textSize="18sp"
+                app:layout_constraintBottom_toTopOf="@+id/buy_btn_guideline"
+                app:layout_constraintEnd_toStartOf="@+id/year_period_btn"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toEndOf="@+id/month_period_btn"
+                app:layout_constraintTop_toTopOf="@+id/period_selecton_guideline" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/year_period_btn"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:text="1Y"
+                android:textSize="18sp"
+                app:layout_constraintBottom_toTopOf="@+id/buy_btn_guideline"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toEndOf="@+id/sixmonth_period_btn"
+                app:layout_constraintTop_toTopOf="@+id/period_selecton_guideline" />
+
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/buy_btn_guideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.9" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buy_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/buy_btn_guideline"
+            app:text="@{`Buy for ` + Convertor.toCurrencySign(vm.stockData.currency) + vm.stockData.currentPrice}"
+            tools:text="buy for $300" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

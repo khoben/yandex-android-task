@@ -1,81 +1,69 @@
 package com.khoben.ticker.ui
 
-import android.content.Context
-import android.os.Environment
-import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.*
-import coil.ImageLoader
-import coil.request.ImageRequest
-import com.khoben.ticker.common.ImageRemoteDownloader
+import com.khoben.ticker.common.SingleLiveData
 import com.khoben.ticker.common.onIOLaunch
-import com.khoben.ticker.database.AppDatabase
-import com.khoben.ticker.model.Stock
-import com.khoben.ticker.repository.FinnhubRepository
-
+import com.khoben.ticker.model.*
+import com.khoben.ticker.repository.LocalStockRepository
+import com.khoben.ticker.repository.RemoteStockRepository
+import com.khoben.ticker.repository.WebSocketRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.sample
+import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import timber.log.Timber
 
 class SharedViewModel(
-    private val context: Context,
-    private val repo: FinnhubRepository,
-    db: AppDatabase
+    private val remoteRepo: RemoteStockRepository,
+    private val localRepo: LocalStockRepository,
+    private val webSocketRepo: WebSocketRepository
 ) : ViewModel() {
-    private val stockDao = db.stockDao()
+
+    private val webSocketSamplePeriodUS = 2000L
+    private val initialLoadingItems = 15
 
     init {
         checkAndFillDatabase()
     }
 
-    val stockList: LiveData<List<Stock>>? = stockDao.all
+    val allStocks = localRepo.allStocks()
+    val favoriteStocks = localRepo.allFavoriteStocks()
 
-    private val _searchButtonClicked = MutableLiveData<Boolean>()
+    private val _searchButtonClicked = SingleLiveData<Boolean>()
     val searchButtonClicked: LiveData<Boolean> = _searchButtonClicked
 
-    val favoriteStocks: LiveData<List<Stock>>? = stockDao.favorite
-
-    private var _firstLoadDatabaseStatus = MutableLiveData<FirstLoadStatus>()
+    private val _firstLoadDatabaseStatus = SingleLiveData<FirstLoadStatus>()
     val firstLoadDatabaseStatus: LiveData<FirstLoadStatus> = _firstLoadDatabaseStatus
 
-    private val queryLiveData = MutableLiveData<String>()
+    private val _stockClicked = SingleLiveData<Stock?>()
+    val stockClicked: LiveData<Stock?> = _stockClicked
 
-    val lastResultSearch: LiveData<List<Stock>> = Transformations.switchMap(queryLiveData) { v ->
-        stockDao.searchDatabase(v)
+    private val _watchTicker = MutableLiveData<String>()
+    val watchTicker = Transformations.switchMap(_watchTicker) { ticker ->
+        localRepo.watchTicker(ticker)
     }
 
-    fun checkAndFillDatabase() {
-        viewModelScope.onIOLaunch {
-            val data = stockDao.all()
-            // if newly created db, fill
-            if (data == null || data.isEmpty()) {
-                _firstLoadDatabaseStatus.postValue(FirstLoadStatus.START_LOADING)
-                val stocks = repo.searchStocks()
-                stocks.forEach {
-                    if (!it.logo.isNullOrBlank() && it.logo!!.isNotEmpty()) {
-                        val request = ImageRequest.Builder(context)
-                            .data(it.logo)
-                            .build()
-                        val drawable = ImageLoader(context).execute(request).drawable
-                        if (drawable != null) {
-                            val outputDir =
-                                context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)?.absolutePath!!
-                            val logo = ImageRemoteDownloader.saveImage(
-                                drawable.toBitmap(),
-                                outputDir,
-                                it.ticker
-                            )
-                            stockDao.insert(it.copy(logo = logo?.absolutePath))
-                        }
-                    } else {
-                        stockDao.insert(it.copy(logo = ""))
-                    }
-                }
-            }
-            _firstLoadDatabaseStatus.postValue(FirstLoadStatus.LOADED)
-        }
+    fun setWatchTicker(ticker: String) {
+        _watchTicker.postValue(ticker)
+    }
+
+    suspend fun search(query: String) = localRepo.search(query)
+
+    suspend fun candle(ticker: String, period: CandleStockPeriod) =
+        remoteRepo.candle(ticker, period)
+
+    suspend fun getCompanyNewsLastWeek(ticker: String): List<News>? {
+        val now = Clock.System.now()
+        return remoteRepo.getCompanyNewsLastWeek(ticker)
     }
 
     fun toggleFavorite(ticker: String) {
         viewModelScope.onIOLaunch {
-            stockDao.getByTicker(ticker)?.let {
-                stockDao.update(it.apply { isFavourite = !isFavourite })
+            localRepo.getByTicker(ticker)?.let {
+                localRepo.update(it.apply { isFavourite = !isFavourite })
             }
         }
     }
@@ -84,7 +72,69 @@ class SharedViewModel(
         _searchButtonClicked.value = true
     }
 
-    fun search(query: String) {
-        queryLiveData.value = query
+    @FlowPreview
+    fun subscribeToSocketEvents() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                localRepo.getAllTickers()?.let { tickerList ->
+                    webSocketRepo.startSocket(tickerList)
+                        .sample(webSocketSamplePeriodUS)
+                        .collect { message ->
+                            onWebSocketMessage(message)
+                        }
+                }
+            } catch (ex: Exception) {
+                onWebSocketError(ex)
+            }
+        }
+    }
+
+    private suspend fun onWebSocketMessage(message: WebSocketTickerUpdate) {
+        message.ticker?.let {
+            localRepo.getByTicker(it)?.let { stock ->
+                message.price?.let { newPrice ->
+                    localRepo.update(stock.updateCurrentPrice(newPrice))
+                }
+            }
+        }
+    }
+
+    private fun onWebSocketError(exception: Throwable) {
+        Timber.e(exception)
+    }
+
+    override fun onCleared() {
+        webSocketRepo.stopSocket()
+        super.onCleared()
+    }
+
+    private fun checkAndFillDatabase() {
+        CoroutineScope(Dispatchers.IO).launch {
+            // if newly created db, fill
+            if (localRepo.countStocks() < initialLoadingItems) {
+                remoteRepo.getFirstSP500(initialLoadingItems)?.collect { state ->
+                    when (state) {
+                        is DataState.Error -> {
+                            Timber.e(state.throwable)
+                        }
+                        is DataState.Loading -> {
+                            if (state.status) {
+                                _firstLoadDatabaseStatus.postValue(FirstLoadStatus.START_LOADING)
+                            } else {
+                                _firstLoadDatabaseStatus.postValue(FirstLoadStatus.LOADED)
+                            }
+                        }
+                        is DataState.Success -> {
+                            localRepo.insert(state.data as Stock)
+                        }
+                    }
+                }
+            }
+            _firstLoadDatabaseStatus.postValue(FirstLoadStatus.LOADED)
+        }
+    }
+
+    fun showStock(clicked: Stock) {
+        _stockClicked.value = clicked
     }
 }
