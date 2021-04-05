@@ -35,7 +35,7 @@ class SharedViewModel(
     private val _searchButtonClicked = SingleLiveData<Boolean>()
     val searchButtonClicked: LiveData<Boolean> = _searchButtonClicked
 
-    private val _firstLoadDatabaseStatus = SingleLiveData<FirstLoadStatus>()
+    private val _firstLoadDatabaseStatus = MutableLiveData<FirstLoadStatus>()
     val firstLoadDatabaseStatus: LiveData<FirstLoadStatus> = _firstLoadDatabaseStatus
 
     private val _stockClicked = SingleLiveData<Stock?>()
