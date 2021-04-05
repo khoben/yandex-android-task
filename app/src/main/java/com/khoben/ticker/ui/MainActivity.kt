@@ -56,7 +56,8 @@ class MainActivity : AppCompatActivity() {
         })
         sharedViewModel.stockClicked.observe(this, { clickedStock ->
             if (clickedStock != null) {
-                val stockFragment = supportFragmentManager.findFragmentByTag(StockViewFragment.TAG) ?: StockViewFragment.show(clickedStock)
+                val stockFragment = supportFragmentManager.findFragmentByTag(StockViewFragment.TAG)
+                    ?: StockViewFragment.show(clickedStock)
                 if (!stockFragment.isAdded) {
                     supportFragmentManager.beginTransaction()
                         .also { ft ->

@@ -1,7 +1,6 @@
 package com.khoben.ticker.di.module
 
 import com.khoben.ticker.ClientConfig
-import com.khoben.ticker.TickerApplication
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 

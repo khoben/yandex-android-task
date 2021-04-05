@@ -4,23 +4,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
-import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.Fragment
-import com.google.android.material.tabs.TabLayout
-import com.google.android.material.tabs.TabLayoutMediator
 import com.google.android.material.transition.MaterialSharedAxis
-import com.khoben.ticker.R
 import com.khoben.ticker.databinding.StockViewFragmentBinding
 import com.khoben.ticker.model.Stock
 import com.khoben.ticker.ui.viewpager.FragmentViewPagerAdapter
 import com.khoben.ticker.ui.viewpager.chart.ChartStockFragment
-import com.khoben.ticker.ui.viewpager.favourite.FavoriteStockFragment
-import com.khoben.ticker.ui.viewpager.main.MainStockFragment
 import com.khoben.ticker.ui.viewpager.news.NewsStockFragment
 import com.khoben.ticker.ui.viewpager.summary.SummaryStockFragment
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class StockViewFragment : Fragment() {
     private var _binding: StockViewFragmentBinding? = null

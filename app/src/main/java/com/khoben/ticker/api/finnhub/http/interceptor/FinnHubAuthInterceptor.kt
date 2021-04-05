@@ -1,6 +1,5 @@
 package com.khoben.ticker.api.finnhub.http.interceptor
 
-import com.khoben.ticker.TickerApplication
 import okhttp3.Interceptor
 import okhttp3.Response
 

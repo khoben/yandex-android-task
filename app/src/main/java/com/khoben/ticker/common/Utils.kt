@@ -21,7 +21,8 @@ object Utils {
     }
 
     fun View.hideKeyboard() {
-        val inputMethodManager = ContextCompat.getSystemService(context, InputMethodManager::class.java)!!
+        val inputMethodManager =
+            ContextCompat.getSystemService(context, InputMethodManager::class.java)!!
         inputMethodManager.hideSoftInputFromWindow(windowToken, 0)
     }
 
@@ -75,6 +76,7 @@ object Utils {
             )
         }
     }
+
     /**
      * Get color from attribute resource
      *

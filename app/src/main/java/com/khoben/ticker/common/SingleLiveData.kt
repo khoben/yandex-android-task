@@ -6,7 +6,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import java.util.concurrent.atomic.AtomicBoolean
 
-open class SingleLiveData<T> @JvmOverloads constructor(value: T? = null) : MutableLiveData<T>(value) {
+open class SingleLiveData<T> @JvmOverloads constructor(value: T? = null) :
+    MutableLiveData<T>(value) {
     private val mPending = AtomicBoolean(false)
 
     @MainThread

@@ -1,18 +1,14 @@
 package com.khoben.ticker.ui.recyclerview
 
 import android.annotation.SuppressLint
-import android.graphics.BitmapFactory
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.databinding.BindingAdapter
 import com.google.android.material.button.MaterialButton
 import com.khoben.ticker.R
-import com.khoben.ticker.common.Utils
 import com.khoben.ticker.common.format
 import com.khoben.ticker.common.toCurrencySign
 import com.khoben.ticker.model.Stock
-import timber.log.Timber
 
 @SuppressLint("SetTextI18n")
 @BindingAdapter("current_price")

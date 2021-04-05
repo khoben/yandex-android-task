@@ -5,7 +5,10 @@ import com.khoben.ticker.common.StockImageRemoteDownloader
 import com.khoben.ticker.database.dao.StockDao
 import com.khoben.ticker.model.Stock
 
-class RoomLocalStockRepository(private val stockDao: StockDao, private val stockImageRemoteDownloader: StockImageRemoteDownloader) : LocalStockRepository {
+class RoomLocalStockRepository(
+    private val stockDao: StockDao,
+    private val stockImageRemoteDownloader: StockImageRemoteDownloader
+) : LocalStockRepository {
     override fun allStocks(): LiveData<List<Stock>>? = stockDao.all
     override fun allFavoriteStocks(): LiveData<List<Stock>>? = stockDao.favorite
     override fun watchTicker(ticker: String): LiveData<Stock?> = stockDao.watchTicker(ticker)
@@ -13,6 +16,7 @@ class RoomLocalStockRepository(private val stockDao: StockDao, private val stock
         if (query.isBlank()) return emptyList()
         return stockDao.search(query)
     }
+
     override suspend fun getAllTickers() = stockDao.getAllTickerSymbols()
     override suspend fun countStocks(): Int = stockDao.count()
     override suspend fun insert(stock: Stock) {

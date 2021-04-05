@@ -1,7 +1,6 @@
 package com.khoben.ticker.repository
 
 import com.khoben.ticker.model.WebSocketTickerUpdate
-import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.Flow
 
 interface WebSocketRepository {

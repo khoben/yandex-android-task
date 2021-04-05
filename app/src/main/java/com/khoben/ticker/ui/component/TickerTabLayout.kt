@@ -46,7 +46,9 @@ class TickerTabLayout @JvmOverloads constructor(
             tab.customView =
                 LayoutInflater.from(context).inflate(R.layout.custom_tablayout_tab, null)
             tab.text = titles[position]
-            if (position == 0) { viewPager.currentItem = 0 }
+            if (position == 0) {
+                viewPager.currentItem = 0
+            }
         }.attach()
     }
 }

@@ -1,6 +1,5 @@
 package com.khoben.ticker.ui.viewpager.chart
 
-import android.widget.Toast
 import com.khoben.ticker.model.CandleStock
 import com.robinhood.spark.SparkAdapter
 

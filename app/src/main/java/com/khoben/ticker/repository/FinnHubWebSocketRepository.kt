@@ -2,18 +2,12 @@ package com.khoben.ticker.repository
 
 import com.khoben.ticker.api.finnhub.websocket.FinnHubWebSocket
 import com.khoben.ticker.api.finnhub.websocket.model.FinnHubSubscribeMessage
-import com.khoben.ticker.api.finnhub.websocket.model.FinnHubWebSocketResponse
 import com.khoben.ticker.model.WebSocketTickerUpdate
-import com.tinder.scarlet.Message
 import com.tinder.scarlet.websocket.WebSocketEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
-import timber.log.Timber
 
 class FinnHubWebSocketRepository(private val socket: FinnHubWebSocket) : WebSocketRepository {
 

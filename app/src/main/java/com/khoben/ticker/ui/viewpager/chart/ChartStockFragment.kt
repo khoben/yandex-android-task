@@ -14,7 +14,6 @@ import com.khoben.ticker.R
 import com.khoben.ticker.common.onIOLaunch
 import com.khoben.ticker.common.toDataPrice
 import com.khoben.ticker.databinding.StockViewChartFragmentBinding
-import com.khoben.ticker.model.CandleStock
 import com.khoben.ticker.model.CandleStockPeriod
 import com.khoben.ticker.ui.SharedViewModel
 import com.khoben.ticker.ui.StockViewModel
@@ -71,7 +70,7 @@ class ChartStockFragment : Fragment() {
         }
 
         binding.stockChart.apply {
-            adapter = ChartAdapter().also { chartAdapter = it}
+            adapter = ChartAdapter().also { chartAdapter = it }
             sparkAnimator = LineSparkAnimator().apply {
                 duration = 1000L
                 interpolator = AccelerateDecelerateInterpolator()

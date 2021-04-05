@@ -8,7 +8,6 @@ import androidx.fragment.app.Fragment
 import com.khoben.ticker.databinding.StockViewNewsFragmentBinding
 import com.khoben.ticker.ui.SharedViewModel
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import timber.log.Timber
 
 class NewsStockFragment : Fragment() {
     private var _binding: StockViewNewsFragmentBinding? = null

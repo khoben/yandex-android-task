@@ -2,7 +2,6 @@ package com.khoben.ticker.di.module
 
 import com.khoben.ticker.ui.SharedViewModel
 import com.khoben.ticker.ui.StockViewModel
-import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 

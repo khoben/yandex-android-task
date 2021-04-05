@@ -1,6 +1,9 @@
 package com.khoben.ticker.repository
 
-import com.khoben.ticker.model.*
+import com.khoben.ticker.model.CandleStock
+import com.khoben.ticker.model.CandleStockPeriod
+import com.khoben.ticker.model.DataState
+import com.khoben.ticker.model.News
 import kotlinx.coroutines.flow.Flow
 
 interface RemoteStockRepository {
