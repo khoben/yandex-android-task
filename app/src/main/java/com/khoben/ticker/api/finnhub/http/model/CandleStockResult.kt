@@ -18,5 +18,5 @@ data class CandleStockResult(
     @SerialName("t")
     val timestamps: List<Int>? = null,
     @SerialName("v")
-    val volumes: List<Int>? = null
+    val volumes: List<Double>? = null
 )
