@@ -1,6 +1,7 @@
 package com.khoben.ticker.ui
 
 import androidx.lifecycle.*
+import com.khoben.ticker.common.ApiErrorProvider
 import com.khoben.ticker.common.SingleLiveData
 import com.khoben.ticker.common.onIOLaunch
 import com.khoben.ticker.model.*
@@ -11,6 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
@@ -22,7 +24,7 @@ class SharedViewModel(
     private val webSocketRepo: WebSocketRepository
 ) : ViewModel() {
 
-    private val webSocketSamplePeriodUS = 2000L
+    private val webSocketSamplePeriodUS = 500L
     private val initialLoadingItems = 15
 
     init {
@@ -52,11 +54,9 @@ class SharedViewModel(
 
     suspend fun search(query: String) = localRepo.search(query)
 
-    suspend fun candle(ticker: String, period: CandleStockPeriod) =
-        remoteRepo.candle(ticker, period)
+    suspend fun candle(ticker: String, period: CandleStockPeriod) = remoteRepo.candle(ticker, period)
 
     suspend fun getCompanyNewsLastWeek(ticker: String): List<News>? {
-        val now = Clock.System.now()
         return remoteRepo.getCompanyNewsLastWeek(ticker)
     }
 
@@ -108,20 +108,23 @@ class SharedViewModel(
         super.onCleared()
     }
 
-    private fun checkAndFillDatabase() {
+    fun checkAndFillDatabase() {
         CoroutineScope(Dispatchers.IO).launch {
             // if newly created db, fill
             val currentCount = localRepo.countStocks()
             if (currentCount < initialLoadingItems) {
-                _firstLoadDatabaseStatus.postValue(FirstLoadStatus.START_LOADING)
                 remoteRepo.getFirstSP500(initialLoadingItems - currentCount)?.collect { state ->
                     when (state) {
                         is DataState.Error -> {
-                            Timber.e(state.throwable)
+                            ApiErrorProvider.postValue(state.throwable)
+                            _firstLoadDatabaseStatus.postValue(FirstLoadStatus.ERROR)
                         }
                         is DataState.Loading -> {
                             if (!state.status) {
+                                subscribeToSocketEvents()
                                 _firstLoadDatabaseStatus.postValue(FirstLoadStatus.LOADED)
+                            } else {
+                                _firstLoadDatabaseStatus.postValue(FirstLoadStatus.START_LOADING)
                             }
                         }
                         is DataState.Success -> {
@@ -133,6 +136,7 @@ class SharedViewModel(
                 }
             } else {
                 _firstLoadDatabaseStatus.postValue(FirstLoadStatus.LOADED)
+                subscribeToSocketEvents()
             }
         }
     }

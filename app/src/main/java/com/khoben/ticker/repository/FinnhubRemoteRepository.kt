@@ -5,18 +5,25 @@ import com.khoben.ticker.common.ApiErrorProvider
 import com.khoben.ticker.common.formatDate
 import com.khoben.ticker.common.toModel
 import com.khoben.ticker.model.*
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.cancel
 import kotlinx.coroutines.flow.flow
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
+import kotlin.coroutines.cancellation.CancellationException
 
 class FinnhubRemoteRepository(private val service: FinnHubService) : RemoteStockRepository {
 
+    // should be DataState, but nested flows emitions work time by time
     private suspend inline fun <T> safeApiCall(crossinline body: suspend () -> T): T? {
         return try {
             body()
+        } catch(ex: CancellationException) {
+            throw ex
         } catch (e: Exception) {
             e.printStackTrace()
             ApiErrorProvider.postValue(e)
@@ -47,38 +54,39 @@ class FinnhubRemoteRepository(private val service: FinnHubService) : RemoteStock
 
     override suspend fun getFirstSP500(amount: Int): Flow<DataState<Stock>> = flow {
         emit(DataState.Loading(true))
-        val allStocks = sp500()?.constituents?.take(amount) ?: emptyList()
-        // getting some stocks
         try {
+            val sp500call = sp500() ?: throw Exception()
+            val allStocks = sp500call.constituents.take(amount)
+            // getting some stocks
             for (ticker in allStocks) {
-                val stockQuote = stockInfo(ticker) ?: continue
-                val company = companyProfile(ticker) ?: continue
+                val stockQuoteCall = stockInfo(ticker) ?: throw Exception()
+                val companyCall = companyProfile(ticker) ?: throw Exception()
                 val priceChange = calcPriceChangeDailyPrice(
-                    stockQuote.currentPrice,
-                    stockQuote.previousClosePrice
+                    stockQuoteCall.currentPrice,
+                    stockQuoteCall.previousClosePrice
                 )
                 val percentChange = calcPriceChangeDailyPercentage(
                     priceChange,
-                    stockQuote.previousClosePrice
+                    stockQuoteCall.previousClosePrice
                 )
                 emit(
                     DataState.Success(
                         Stock(
-                            companyName = company.name,
+                            companyName = companyCall.name,
                             ticker = ticker,
-                            logo = company.logo,
-                            currentPrice = stockQuote.currentPrice,
-                            previousClosePrice = stockQuote.previousClosePrice,
+                            logo = companyCall.logo,
+                            currentPrice = stockQuoteCall.currentPrice,
+                            previousClosePrice = stockQuoteCall.previousClosePrice,
                             priceChangeDailyPercent = percentChange,
                             priceChangeDailyPrice = priceChange
                         )
                     )
                 )
             }
+            emit(DataState.Loading(false))
         } catch (e: Exception) {
             emit(DataState.Error(e))
         }
-        emit(DataState.Loading(false))
     }
 
     override suspend fun getCompanyNewsLastWeek(ticker: String): List<News>? = safeApiCall {
@@ -135,7 +143,7 @@ class FinnhubRemoteRepository(private val service: FinnHubService) : RemoteStock
 
     private suspend fun candleDay(symbol: String, from: Long, to: Long): CandleStock? =
         safeApiCall {
-            service.candle(symbol, 60.toString(), from, to).toModel()
+            service.candle(symbol, 5.toString(), from, to).toModel()
         }
 
     private suspend fun candleWeek(symbol: String, from: Long, to: Long): CandleStock? =

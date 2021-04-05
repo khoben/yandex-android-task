@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     app:layoutDescription="@xml/activity_main_scene">
 
-
     <EditText
         android:id="@+id/search_field"
         android:layout_width="match_parent"
@@ -30,13 +29,13 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <include
-        android:id="@+id/loading"
-        layout="@layout/loading_layout"
+        android:id="@+id/info_layout"
+        layout="@layout/info_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
+        android:layout_height="100dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/tab_layout"
         app:layout_constraintTop_toBottomOf="@id/search_field" />
 
     <com.khoben.ticker.ui.component.TickerTabLayout
@@ -48,7 +47,7 @@
         app:layout_constraintBottom_toTopOf="@+id/view_pager"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/loading"
+        app:layout_constraintTop_toBottomOf="@+id/info_layout"
         app:tabGravity="start"
         app:tabIndicatorHeight="0dp"
         app:tabMode="scrollable"

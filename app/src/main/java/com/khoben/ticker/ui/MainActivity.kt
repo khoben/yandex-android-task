@@ -74,7 +74,7 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 Snackbar.make(
                     findViewById(android.R.id.content),
-                    "API Error: ${apiError?.localizedMessage}",
+                    "API Error. ${apiError?.localizedMessage?:""}",
                     Snackbar.LENGTH_LONG
                 ).show()
             }

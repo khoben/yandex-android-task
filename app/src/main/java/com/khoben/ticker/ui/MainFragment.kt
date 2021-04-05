@@ -12,6 +12,7 @@ import com.khoben.ticker.ui.viewpager.FragmentViewPagerAdapter
 import com.khoben.ticker.ui.viewpager.favourite.FavoriteStockFragment
 import com.khoben.ticker.ui.viewpager.main.MainStockFragment
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+import timber.log.Timber
 
 class MainFragment : Fragment() {
 
@@ -44,13 +45,20 @@ class MainFragment : Fragment() {
 
     private fun initObservables() {
         sharedViewModel.firstLoadDatabaseStatus.observe(viewLifecycleOwner, { loadingStatus ->
+            Timber.d("$loadingStatus")
             when (loadingStatus) {
                 FirstLoadStatus.START_LOADING -> {
-                    binding.loading.root.visibility = View.VISIBLE
+                    binding.infoLayout.root.visibility = View.VISIBLE
+                    binding.infoLayout.loading.root.visibility = View.VISIBLE
+                    binding.infoLayout.retry.root.visibility = View.GONE
                 }
                 FirstLoadStatus.LOADED -> {
-                    binding.loading.root.visibility = View.GONE
-                    sharedViewModel.subscribeToSocketEvents()
+                    binding.infoLayout.root.visibility = View.GONE
+                }
+                FirstLoadStatus.ERROR -> {
+                    binding.infoLayout.root.visibility = View.VISIBLE
+                    binding.infoLayout.loading.root.visibility = View.GONE
+                    binding.infoLayout.retry.root.visibility = View.VISIBLE
                 }
                 null -> {
                 }
@@ -77,6 +85,10 @@ class MainFragment : Fragment() {
     private fun initClickListeners() {
         binding.searchField.setOnClickListener {
             sharedViewModel.clickedSearchBtn()
+        }
+        binding.infoLayout.retry.circularProgressIndicator.setOnClickListener {
+            binding.infoLayout.retry.root.visibility = View.GONE
+            sharedViewModel.checkAndFillDatabase()
         }
     }
 

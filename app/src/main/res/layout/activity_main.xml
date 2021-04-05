@@ -20,7 +20,7 @@
             android:layout_gravity="center"
             android:drawablePadding="4dp"
             android:gravity="center"
-            android:text="Offline mode"
+            android:text="Offline"
             android:textAllCaps="true"
             android:textColor="?colorOnPrimary"
             android:textStyle="bold" />

@@ -11,16 +11,17 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.khoben.ticker.R
+import com.khoben.ticker.common.observeOnce
 import com.khoben.ticker.common.onIOLaunch
 import com.khoben.ticker.common.toDataPrice
 import com.khoben.ticker.databinding.StockViewChartFragmentBinding
 import com.khoben.ticker.model.CandleStockPeriod
+import com.khoben.ticker.model.Stock
 import com.khoben.ticker.ui.SharedViewModel
 import com.khoben.ticker.ui.StockViewModel
 import com.robinhood.spark.SparkView.OnScrubListener
 import com.robinhood.spark.animation.LineSparkAnimator
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import timber.log.Timber
 
 
 class ChartStockFragment : Fragment() {
@@ -49,11 +50,18 @@ class ChartStockFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.loading.appCompatTextView.text = "Chart data loading..."
         // two-way binding
         binding.vm = stockViewModel
         binding.lifecycleOwner = this
         initListeners()
-        fillChart(CandleStockPeriod.DAY)
+        initObservables()
+    }
+
+    private fun initObservables() {
+        stockViewModel.stockData.observeOnce(this, { stock ->
+            fillChart(CandleStockPeriod.DAY)
+        })
     }
 
     private fun initListeners() {
@@ -92,8 +100,13 @@ class ChartStockFragment : Fragment() {
     private fun fillChart(type: CandleStockPeriod) {
         stockViewModel.stockData.value?.ticker?.let { ticker ->
             lifecycleScope.onIOLaunch {
+                this@ChartStockFragment.activity?.runOnUiThread {
+                    binding.loading.root.visibility = View.VISIBLE
+                }
                 val data = sharedViewModel.candle(ticker, type)
-                Timber.d(data.toString())
+                this@ChartStockFragment.activity?.runOnUiThread {
+                    binding.loading.root.visibility = View.GONE
+                }
                 if (data != null) {
                     if (data.prices == null || data.timestamps == null) {
                         this@ChartStockFragment.activity?.runOnUiThread {
