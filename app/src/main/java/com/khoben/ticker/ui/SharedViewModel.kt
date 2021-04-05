@@ -8,14 +8,10 @@ import com.khoben.ticker.model.*
 import com.khoben.ticker.repository.LocalStockRepository
 import com.khoben.ticker.repository.RemoteStockRepository
 import com.khoben.ticker.repository.WebSocketRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.sample
-import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import timber.log.Timber
 
 class SharedViewModel(
@@ -24,7 +20,7 @@ class SharedViewModel(
     private val webSocketRepo: WebSocketRepository
 ) : ViewModel() {
 
-    private val webSocketSamplePeriodUS = 2000L
+    private val webSocketSamplePeriodUS = 500L
     private val initialLoadingItems = 15
 
     init {
@@ -56,19 +52,9 @@ class SharedViewModel(
 
     val candleChart = MutableLiveData<DataState<CandleStock>>()
 
-    fun candle(ticker: String, period: CandleStockPeriod) {
-        viewModelScope.onIOLaunch {
-            remoteRepo.candle(ticker, period).collect { data ->
-                candleChart.postValue(data)
-            }
-        }
-    }
+    suspend fun candle(ticker: String, period: CandleStockPeriod) = remoteRepo.candle(ticker, period)
 
-//    fun getCompanyNewsLastWeek(ticker: String) {
-//        CoroutineScope(Dispatchers.IO).launch {
-//            remoteRepo.getCompanyNewsLastWeek(ticker).
-//        }
-//    }
+    suspend fun getCompanyNewsLastWeek(ticker: String) = remoteRepo.getCompanyNewsLastWeek(ticker)
 
     fun toggleFavorite(ticker: String) {
         viewModelScope.onIOLaunch {
@@ -118,7 +104,7 @@ class SharedViewModel(
         super.onCleared()
     }
 
-    private fun checkAndFillDatabase() {
+    fun checkAndFillDatabase() {
         CoroutineScope(Dispatchers.IO).launch {
             // if newly created db, fill
             val currentCount = localRepo.countStocks()

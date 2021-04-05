@@ -64,8 +64,9 @@
         <include
             android:id="@+id/loading"
             layout="@layout/loading_layout"
+            android:visibility="gone"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             app:layout_constraintEnd_toEndOf="@id/stock_chart"
             app:layout_constraintStart_toStartOf="@id/stock_chart"
             app:layout_constraintTop_toTopOf="@id/stock_chart"

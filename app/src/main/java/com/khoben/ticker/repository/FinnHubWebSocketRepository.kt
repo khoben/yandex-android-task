@@ -35,7 +35,7 @@ class FinnHubWebSocketRepository(private val socket: FinnHubWebSocket) : WebSock
             .flatMapMerge { response -> response.data!!.asFlow() }
             .map { tickerUpdate ->
                 WebSocketTickerUpdate(ticker = tickerUpdate.symbol, price = tickerUpdate.lastPrice)
-            }
+            }.distinctUntilChangedBy { key -> key.ticker }
     }
 
     /**
