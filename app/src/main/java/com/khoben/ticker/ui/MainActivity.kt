@@ -70,7 +70,6 @@ class MainActivity : AppCompatActivity() {
         })
 
         ApiErrorProvider.init().observe(this, { apiError ->
-            Timber.d(apiError)
             runOnUiThread {
                 Snackbar.make(
                     findViewById(android.R.id.content),

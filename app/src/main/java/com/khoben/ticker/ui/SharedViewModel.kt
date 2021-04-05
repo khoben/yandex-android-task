@@ -1,6 +1,7 @@
 package com.khoben.ticker.ui
 
 import androidx.lifecycle.*
+import com.khoben.ticker.common.ApiErrorProvider
 import com.khoben.ticker.common.SingleLiveData
 import com.khoben.ticker.common.onIOLaunch
 import com.khoben.ticker.model.*
@@ -11,6 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
@@ -52,13 +54,21 @@ class SharedViewModel(
 
     suspend fun search(query: String) = localRepo.search(query)
 
-    suspend fun candle(ticker: String, period: CandleStockPeriod) =
-        remoteRepo.candle(ticker, period)
+    val candleChart = MutableLiveData<DataState<CandleStock>>()
 
-    suspend fun getCompanyNewsLastWeek(ticker: String): List<News>? {
-        val now = Clock.System.now()
-        return remoteRepo.getCompanyNewsLastWeek(ticker)
+    fun candle(ticker: String, period: CandleStockPeriod) {
+        viewModelScope.onIOLaunch {
+            remoteRepo.candle(ticker, period).collect { data ->
+                candleChart.postValue(data)
+            }
+        }
     }
+
+//    fun getCompanyNewsLastWeek(ticker: String) {
+//        CoroutineScope(Dispatchers.IO).launch {
+//            remoteRepo.getCompanyNewsLastWeek(ticker).
+//        }
+//    }
 
     fun toggleFavorite(ticker: String) {
         viewModelScope.onIOLaunch {
@@ -113,14 +123,15 @@ class SharedViewModel(
             // if newly created db, fill
             val currentCount = localRepo.countStocks()
             if (currentCount < initialLoadingItems) {
-                _firstLoadDatabaseStatus.postValue(FirstLoadStatus.START_LOADING)
-                remoteRepo.getFirstSP500(initialLoadingItems - currentCount)?.collect { state ->
+                remoteRepo.getFirstSP500(initialLoadingItems - currentCount).collect { state ->
                     when (state) {
                         is DataState.Error -> {
-                            Timber.e(state.throwable)
+                            ApiErrorProvider.postValue(state.throwable)
                         }
                         is DataState.Loading -> {
-                            if (!state.status) {
+                            if (state.status) {
+                                _firstLoadDatabaseStatus.postValue(FirstLoadStatus.START_LOADING)
+                            } else {
                                 _firstLoadDatabaseStatus.postValue(FirstLoadStatus.LOADED)
                             }
                         }

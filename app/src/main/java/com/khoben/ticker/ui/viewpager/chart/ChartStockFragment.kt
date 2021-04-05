@@ -9,12 +9,12 @@ import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import com.khoben.ticker.R
-import com.khoben.ticker.common.onIOLaunch
+import com.khoben.ticker.common.ApiErrorProvider
 import com.khoben.ticker.common.toDataPrice
 import com.khoben.ticker.databinding.StockViewChartFragmentBinding
 import com.khoben.ticker.model.CandleStockPeriod
+import com.khoben.ticker.model.DataState
 import com.khoben.ticker.ui.SharedViewModel
 import com.khoben.ticker.ui.StockViewModel
 import com.robinhood.spark.SparkView.OnScrubListener
@@ -54,6 +54,43 @@ class ChartStockFragment : Fragment() {
         binding.lifecycleOwner = this
         initListeners()
         fillChart(CandleStockPeriod.DAY)
+        initObservables()
+    }
+
+    private fun initObservables() {
+        sharedViewModel.candleChart.observe(viewLifecycleOwner, { data ->
+            Timber.d(data.toString())
+            when (data) {
+                is DataState.Error -> {
+                    ApiErrorProvider.postValue(data.throwable)
+                }
+                is DataState.Loading -> {
+                    if (data.status) {
+                        binding.loading.root.visibility = View.VISIBLE
+                    } else {
+                        binding.loading.root.visibility = View.GONE
+                    }
+                }
+                is DataState.Success -> {
+                    if (data.data != null) {
+                        if (data.data.prices == null || data.data.timestamps == null) {
+                            this@ChartStockFragment.activity?.runOnUiThread {
+                                Toast.makeText(
+                                    context,
+                                    "No data for this timeframe",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                chartAdapter?.setData(null)
+                            }
+                        } else {
+                            this@ChartStockFragment.activity?.runOnUiThread {
+                                chartAdapter?.setData(data.data)
+                            }
+                        }
+                    }
+                }
+            }
+        })
     }
 
     private fun initListeners() {
@@ -91,23 +128,7 @@ class ChartStockFragment : Fragment() {
 
     private fun fillChart(type: CandleStockPeriod) {
         stockViewModel.stockData.value?.ticker?.let { ticker ->
-            lifecycleScope.onIOLaunch {
-                val data = sharedViewModel.candle(ticker, type)
-                Timber.d(data.toString())
-                if (data != null) {
-                    if (data.prices == null || data.timestamps == null) {
-                        this@ChartStockFragment.activity?.runOnUiThread {
-                            Toast.makeText(context, "No data for this timeframe", Toast.LENGTH_LONG)
-                                .show()
-                            chartAdapter?.setData(null)
-                        }
-                    } else {
-                        this@ChartStockFragment.activity?.runOnUiThread {
-                            chartAdapter?.setData(data)
-                        }
-                    }
-                }
-            }
+            sharedViewModel.candle(ticker, type)
         }
     }
 
