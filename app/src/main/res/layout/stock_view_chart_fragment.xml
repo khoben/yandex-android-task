@@ -106,8 +106,8 @@
             android:id="@+id/toggle_group"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:checkedButton="@id/day_period_btn"
-            app:layout_constraintBottom_toTopOf="@+id/buy_btn_guideline"
+            app:checkedButton="@id/year_period_btn"
+            app:layout_constraintBottom_toTopOf="@+id/buy_btn"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/period_selecton_guideline"
@@ -192,13 +192,6 @@
 
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/buy_btn_guideline"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintGuide_percent="0.9" />
-
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buy_btn"
             android:layout_width="match_parent"
@@ -206,7 +199,7 @@
             android:layout_margin="16dp"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/buy_btn_guideline"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:text="@{`Buy for ` + Convertor.toCurrencySign(vm.stockData.currency) + vm.stockData.currentPrice}"
             tools:text="buy for $300" />
 

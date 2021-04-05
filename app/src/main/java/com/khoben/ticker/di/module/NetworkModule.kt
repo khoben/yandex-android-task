@@ -15,6 +15,7 @@ import com.tinder.scarlet.retry.LinearBackoffStrategy
 import com.tinder.scarlet.websocket.ShutdownReason
 import com.tinder.scarlet.websocket.okhttp.OkHttpWebSocket
 import com.tinder.streamadapter.coroutines.CoroutinesStreamAdapterFactory
+import get
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -67,11 +68,17 @@ val networkModule = module {
             .build()
     }
 
+    single {
+        Json {
+            ignoreUnknownKeys = true
+        }
+    }
+
     single<Retrofit>(named("finnhub_api")) {
         Retrofit.Builder()
             .client(get(named("finnhub")))
             .baseUrl(get(named("finnhub_http")) as String)
-            .addConverterFactory(Json.asConverterFactory("application/json".toMediaTypeOrNull()!!))
+            .addConverterFactory(get<Json>().asConverterFactory("application/json".toMediaTypeOrNull()!!))
             .build()
     }
 

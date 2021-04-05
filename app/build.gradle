@@ -6,6 +6,9 @@ plugins {
     id 'kotlin-parcelize'
 }
 
+Properties props = new Properties()
+props.load(new FileInputStream(new File('local.properties')))
+
 android {
     compileSdkVersion 30
     buildToolsVersion "30.0.3"
@@ -16,6 +19,8 @@ android {
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
+
+        buildConfigField "String", "FINN_HUB_KEY", "\"${props['FINN_HUB_KEY']}\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

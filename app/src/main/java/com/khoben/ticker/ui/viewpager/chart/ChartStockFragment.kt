@@ -63,7 +63,7 @@ class ChartStockFragment : Fragment() {
 
     private fun initObservables() {
         stockViewModel.stockData.observeOnce(this, { stock ->
-            fillChart(CandleStockPeriod.DAY)
+            fillChart(CandleStockPeriod.ONEYEAR)
         })
     }
 

@@ -10,6 +10,7 @@ import com.khoben.ticker.common.ApiErrorProvider
 import com.khoben.ticker.common.ConnectivityProvider
 import com.khoben.ticker.databinding.ActivityMainBinding
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
 
@@ -74,6 +75,7 @@ class MainActivity : AppCompatActivity() {
                     "API Error. ${apiError?.localizedMessage ?: ""}",
                     Snackbar.LENGTH_LONG
                 ).show()
+                Timber.e(apiError)
             }
         })
     }
