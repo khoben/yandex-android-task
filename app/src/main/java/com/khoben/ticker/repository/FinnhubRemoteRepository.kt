@@ -1,15 +1,12 @@
 package com.khoben.ticker.repository
 
 import com.khoben.ticker.api.finnhub.http.FinnHubService
-import com.khoben.ticker.api.finnhub.http.model.StockInfoResult
 import com.khoben.ticker.common.ApiErrorProvider
 import com.khoben.ticker.common.formatDate
 import com.khoben.ticker.common.toModel
 import com.khoben.ticker.model.*
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
@@ -17,9 +14,9 @@ import kotlinx.datetime.minus
 
 class FinnhubRemoteRepository(private val service: FinnHubService) : RemoteStockRepository {
 
-    private inline fun <T> safeApiCall(responseFunction: () -> T): T? {
+    private suspend inline fun <T> safeApiCall(crossinline body: suspend () -> T): T? {
         return try {
-            responseFunction.invoke()
+            body()
         } catch (e: Exception) {
             e.printStackTrace()
             ApiErrorProvider.postValue(e)
@@ -41,7 +38,10 @@ class FinnhubRemoteRepository(private val service: FinnHubService) : RemoteStock
         return priceChange / currentPrice * 100.0
     }
 
-    private fun calcPriceChangeDailyPrice(currentPrice: Double, previousClosePrice: Double): Double {
+    private fun calcPriceChangeDailyPrice(
+        currentPrice: Double,
+        previousClosePrice: Double
+    ): Double {
         return currentPrice - previousClosePrice
     }
 
@@ -53,7 +53,10 @@ class FinnhubRemoteRepository(private val service: FinnHubService) : RemoteStock
             for (ticker in allStocks) {
                 val stockQuote = stockInfo(ticker) ?: continue
                 val company = companyProfile(ticker) ?: continue
-                val priceChange = calcPriceChangeDailyPrice(stockQuote.currentPrice, stockQuote.previousClosePrice)
+                val priceChange = calcPriceChangeDailyPrice(
+                    stockQuote.currentPrice,
+                    stockQuote.previousClosePrice
+                )
                 val percentChange = calcPriceChangeDailyPercentage(
                     priceChange,
                     stockQuote.previousClosePrice
@@ -78,56 +81,57 @@ class FinnhubRemoteRepository(private val service: FinnHubService) : RemoteStock
         emit(DataState.Loading(false))
     }
 
-    override suspend fun getCompanyNewsLastWeek(ticker: String): List<News>? {
+    override suspend fun getCompanyNewsLastWeek(ticker: String): List<News>? = safeApiCall {
         val now = Clock.System.now()
-        return service.companyNews(
+        service.companyNews(
             ticker, now.minus(1, DateTimeUnit.WEEK, TimeZone.currentSystemDefault())
                 .toEpochMilliseconds().formatDate("YYYY-MM-dd"),
             now.toEpochMilliseconds().formatDate("YYYY-MM-dd")
         )?.map { item -> item.toModel() }
     }
 
-    override suspend fun candle(symbol: String, period: CandleStockPeriod): CandleStock? {
-        val now = Clock.System.now()
-        return when (period) {
-            CandleStockPeriod.DAY -> {
-                candleDay(
-                    symbol,
-                    now.minus(1, DateTimeUnit.DAY, TimeZone.currentSystemDefault())
-                        .epochSeconds,
-                    now.epochSeconds
-                )
-            }
-            CandleStockPeriod.WEEK -> {
-                candleWeek(
-                    symbol,
-                    now.minus(1, DateTimeUnit.WEEK, TimeZone.currentSystemDefault())
-                        .epochSeconds, now.epochSeconds
-                )
-            }
-            CandleStockPeriod.MONTH -> {
-                candleMonth(
-                    symbol,
-                    now.minus(1, DateTimeUnit.MONTH, TimeZone.currentSystemDefault())
-                        .epochSeconds, now.epochSeconds
-                )
-            }
-            CandleStockPeriod.SIXMONTH -> {
-                candleSixMonth(
-                    symbol,
-                    now.minus(6, DateTimeUnit.MONTH, TimeZone.currentSystemDefault())
-                        .epochSeconds, now.epochSeconds
-                )
-            }
-            CandleStockPeriod.ONEYEAR -> {
-                candleOneYear(
-                    symbol,
-                    now.minus(1, DateTimeUnit.YEAR, TimeZone.currentSystemDefault())
-                        .epochSeconds, now.epochSeconds
-                )
+    override suspend fun candle(symbol: String, period: CandleStockPeriod): CandleStock? =
+        safeApiCall {
+            val now = Clock.System.now()
+            when (period) {
+                CandleStockPeriod.DAY -> {
+                    candleDay(
+                        symbol,
+                        now.minus(1, DateTimeUnit.DAY, TimeZone.currentSystemDefault())
+                            .epochSeconds,
+                        now.epochSeconds
+                    )
+                }
+                CandleStockPeriod.WEEK -> {
+                    candleWeek(
+                        symbol,
+                        now.minus(1, DateTimeUnit.WEEK, TimeZone.currentSystemDefault())
+                            .epochSeconds, now.epochSeconds
+                    )
+                }
+                CandleStockPeriod.MONTH -> {
+                    candleMonth(
+                        symbol,
+                        now.minus(1, DateTimeUnit.MONTH, TimeZone.currentSystemDefault())
+                            .epochSeconds, now.epochSeconds
+                    )
+                }
+                CandleStockPeriod.SIXMONTH -> {
+                    candleSixMonth(
+                        symbol,
+                        now.minus(6, DateTimeUnit.MONTH, TimeZone.currentSystemDefault())
+                            .epochSeconds, now.epochSeconds
+                    )
+                }
+                CandleStockPeriod.ONEYEAR -> {
+                    candleOneYear(
+                        symbol,
+                        now.minus(1, DateTimeUnit.YEAR, TimeZone.currentSystemDefault())
+                            .epochSeconds, now.epochSeconds
+                    )
+                }
             }
         }
-    }
 
     private suspend fun candleDay(symbol: String, from: Long, to: Long): CandleStock? =
         safeApiCall {

@@ -4,6 +4,11 @@
     <style name="MyBaseTheme" parent="Theme.MaterialComponents.DayNight">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="snackbarStyle">@style/MySnackbar</item>
+    </style>
+
+    <style name="MySnackbar" parent="Widget.MaterialComponents.Snackbar">
+        <item name="android:layout_margin">32dp</item>
     </style>
 
     <style name="MyTheme" parent="MyBaseTheme" />

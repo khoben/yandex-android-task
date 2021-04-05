@@ -1,3 +1,5 @@
 package com.khoben.ticker.common
 
-object ApiErrorProvider : SingleLiveData<Throwable>()
+object ApiErrorProvider : SingleLiveData<Throwable?>() {
+    fun init() = this
+}
