@@ -37,8 +37,8 @@ class SharedViewModel(
     private val _searchButtonClicked = SingleLiveData<Boolean>()
     val searchButtonClicked: LiveData<Boolean> = _searchButtonClicked
 
-    private val _firstLoadDatabaseStatus = MutableLiveData<FirstLoadStatus>()
-    val firstLoadDatabaseStatus: LiveData<FirstLoadStatus> = _firstLoadDatabaseStatus
+    private val _firstLoadDatabaseStatus = MutableLiveData<DataBaseLoadingState>()
+    val firstLoadDatabaseStatus: LiveData<DataBaseLoadingState> = _firstLoadDatabaseStatus
 
     private val _stockClicked = SingleLiveData<Stock?>()
     val stockClicked: LiveData<Stock?> = _stockClicked
@@ -126,13 +126,14 @@ class SharedViewModel(
                 remoteRepo.getFirstSP500(initialLoadingItems - currentCount).collect { state ->
                     when (state) {
                         is DataState.Error -> {
-                            ApiErrorProvider.postValue(state.throwable)
+                            _firstLoadDatabaseStatus.postValue(DataBaseLoadingState.Error(state.throwable))
                         }
                         is DataState.Loading -> {
                             if (state.status) {
-                                _firstLoadDatabaseStatus.postValue(FirstLoadStatus.START_LOADING)
+                                _firstLoadDatabaseStatus.postValue(DataBaseLoadingState.Loading)
                             } else {
-                                _firstLoadDatabaseStatus.postValue(FirstLoadStatus.LOADED)
+                                _firstLoadDatabaseStatus.postValue(DataBaseLoadingState.Loaded)
+                                subscribeToSocketEvents()
                             }
                         }
                         is DataState.Success -> {
@@ -143,7 +144,8 @@ class SharedViewModel(
                     }
                 }
             } else {
-                _firstLoadDatabaseStatus.postValue(FirstLoadStatus.LOADED)
+                _firstLoadDatabaseStatus.postValue(DataBaseLoadingState.Loaded)
+                subscribeToSocketEvents()
             }
         }
     }

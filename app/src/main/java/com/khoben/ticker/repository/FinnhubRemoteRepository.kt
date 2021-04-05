@@ -18,14 +18,8 @@ import timber.log.Timber
 class FinnhubRemoteRepository(private val service: FinnHubService) : RemoteStockRepository {
 
     private suspend inline fun <T> safeApiCall(crossinline body: suspend () -> Flow<DataState<T>>) =
-        callbackFlow {
-            offer(DataState.Loading(true))
-            body().collect {
-                Timber.d("$it")
-                offer(it)
-            }
-            offer(DataState.Loading(false))
-            awaitClose()
+        flow {
+            emitAll(body())
         }.catch { e ->
             emit(DataState.Error(e))
         }
@@ -54,6 +48,7 @@ class FinnhubRemoteRepository(private val service: FinnHubService) : RemoteStock
     override suspend fun getFirstSP500(amount: Int) =
         safeApiCall {
             flow {
+                emit(DataState.Loading(true))
                 val allStocks = sp500().constituents.take(amount)
                 // getting some stocks
                 for (ticker in allStocks) {
@@ -82,6 +77,7 @@ class FinnhubRemoteRepository(private val service: FinnHubService) : RemoteStock
                         )
                     )
                 }
+                emit(DataState.Loading(false))
             }
         }
 
@@ -89,6 +85,7 @@ class FinnhubRemoteRepository(private val service: FinnHubService) : RemoteStock
     override suspend fun getCompanyNewsLastWeek(ticker: String) =
         safeApiCall {
             flow {
+                emit(DataState.Loading(true))
                 val now = Clock.System.now()
                 service.companyNews(
                     ticker, now.minus(1, DateTimeUnit.WEEK, TimeZone.currentSystemDefault())
@@ -97,6 +94,7 @@ class FinnhubRemoteRepository(private val service: FinnHubService) : RemoteStock
                 )?.map { item -> item.toModel() }?.forEach { news ->
                     emit((DataState.Success(news)))
                 }
+                emit(DataState.Loading(false))
             }
         }
 
@@ -105,6 +103,7 @@ class FinnhubRemoteRepository(private val service: FinnHubService) : RemoteStock
     override suspend fun candle(symbol: String, period: CandleStockPeriod) =
         safeApiCall {
             flow {
+                emit(DataState.Loading(true))
                 val now = Clock.System.now()
                 when (period) {
                     CandleStockPeriod.DAY -> {
@@ -182,6 +181,7 @@ class FinnhubRemoteRepository(private val service: FinnHubService) : RemoteStock
                         )
                     }
                 }
+                emit(DataState.Loading(false))
             }
         }
 
