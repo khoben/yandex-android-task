@@ -111,26 +111,29 @@ class SharedViewModel(
     private fun checkAndFillDatabase() {
         CoroutineScope(Dispatchers.IO).launch {
             // if newly created db, fill
-            if (localRepo.countStocks() < initialLoadingItems) {
-                remoteRepo.getFirstSP500(initialLoadingItems)?.collect { state ->
+            val currentCount = localRepo.countStocks()
+            if (currentCount < initialLoadingItems) {
+                _firstLoadDatabaseStatus.postValue(FirstLoadStatus.START_LOADING)
+                remoteRepo.getFirstSP500(initialLoadingItems - currentCount)?.collect { state ->
                     when (state) {
                         is DataState.Error -> {
                             Timber.e(state.throwable)
                         }
                         is DataState.Loading -> {
-                            if (state.status) {
-                                _firstLoadDatabaseStatus.postValue(FirstLoadStatus.START_LOADING)
-                            } else {
+                            if (!state.status) {
                                 _firstLoadDatabaseStatus.postValue(FirstLoadStatus.LOADED)
                             }
                         }
                         is DataState.Success -> {
-                            localRepo.insert(state.data as Stock)
+                            if (state.data is Stock) {
+                                localRepo.insert(state.data)
+                            }
                         }
                     }
                 }
+            } else {
+                _firstLoadDatabaseStatus.postValue(FirstLoadStatus.LOADED)
             }
-            _firstLoadDatabaseStatus.postValue(FirstLoadStatus.LOADED)
         }
     }
 
