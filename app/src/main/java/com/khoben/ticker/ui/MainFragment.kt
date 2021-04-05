@@ -6,8 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.google.android.material.transition.MaterialFadeThrough
+import com.khoben.ticker.common.ApiErrorProvider
 import com.khoben.ticker.databinding.MainFragmentBinding
-import com.khoben.ticker.model.FirstLoadStatus
+import com.khoben.ticker.model.DataBaseLoadingState
 import com.khoben.ticker.ui.viewpager.FragmentViewPagerAdapter
 import com.khoben.ticker.ui.viewpager.favourite.FavoriteStockFragment
 import com.khoben.ticker.ui.viewpager.main.MainStockFragment
@@ -45,22 +46,20 @@ class MainFragment : Fragment() {
 
     private fun initObservables() {
         sharedViewModel.firstLoadDatabaseStatus.observe(viewLifecycleOwner, { loadingStatus ->
-            Timber.d("$loadingStatus")
             when (loadingStatus) {
-                FirstLoadStatus.START_LOADING -> {
-                    binding.infoLayout.root.visibility = View.VISIBLE
-                    binding.infoLayout.loading.root.visibility = View.VISIBLE
-                    binding.infoLayout.retry.root.visibility = View.GONE
-                }
-                FirstLoadStatus.LOADED -> {
-                    binding.infoLayout.root.visibility = View.GONE
-                }
-                FirstLoadStatus.ERROR -> {
+                is DataBaseLoadingState.Error -> {
+                    ApiErrorProvider.postValue(loadingStatus.throwable)
                     binding.infoLayout.root.visibility = View.VISIBLE
                     binding.infoLayout.loading.root.visibility = View.GONE
                     binding.infoLayout.retry.root.visibility = View.VISIBLE
                 }
-                null -> {
+                DataBaseLoadingState.Loaded -> {
+                    binding.infoLayout.root.visibility = View.GONE
+                }
+                DataBaseLoadingState.Loading -> {
+                    binding.infoLayout.root.visibility = View.VISIBLE
+                    binding.infoLayout.loading.root.visibility = View.VISIBLE
+                    binding.infoLayout.retry.root.visibility = View.GONE
                 }
             }
         })

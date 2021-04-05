@@ -8,14 +8,10 @@ import com.khoben.ticker.model.*
 import com.khoben.ticker.repository.LocalStockRepository
 import com.khoben.ticker.repository.RemoteStockRepository
 import com.khoben.ticker.repository.WebSocketRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.sample
-import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import timber.log.Timber
 
 class SharedViewModel(
@@ -37,8 +33,8 @@ class SharedViewModel(
     private val _searchButtonClicked = SingleLiveData<Boolean>()
     val searchButtonClicked: LiveData<Boolean> = _searchButtonClicked
 
-    private val _firstLoadDatabaseStatus = MutableLiveData<FirstLoadStatus>()
-    val firstLoadDatabaseStatus: LiveData<FirstLoadStatus> = _firstLoadDatabaseStatus
+    private val _firstLoadDatabaseStatus = MutableLiveData<DataBaseLoadingState>()
+    val firstLoadDatabaseStatus: LiveData<DataBaseLoadingState> = _firstLoadDatabaseStatus
 
     private val _stockClicked = SingleLiveData<Stock?>()
     val stockClicked: LiveData<Stock?> = _stockClicked
@@ -54,11 +50,11 @@ class SharedViewModel(
 
     suspend fun search(query: String) = localRepo.search(query)
 
+    val candleChart = MutableLiveData<DataState<CandleStock>>()
+
     suspend fun candle(ticker: String, period: CandleStockPeriod) = remoteRepo.candle(ticker, period)
 
-    suspend fun getCompanyNewsLastWeek(ticker: String): List<News>? {
-        return remoteRepo.getCompanyNewsLastWeek(ticker)
-    }
+    suspend fun getCompanyNewsLastWeek(ticker: String) = remoteRepo.getCompanyNewsLastWeek(ticker)
 
     fun toggleFavorite(ticker: String) {
         viewModelScope.onIOLaunch {
@@ -113,18 +109,17 @@ class SharedViewModel(
             // if newly created db, fill
             val currentCount = localRepo.countStocks()
             if (currentCount < initialLoadingItems) {
-                remoteRepo.getFirstSP500(initialLoadingItems - currentCount)?.collect { state ->
+                remoteRepo.getFirstSP500(initialLoadingItems - currentCount).collect { state ->
                     when (state) {
                         is DataState.Error -> {
-                            ApiErrorProvider.postValue(state.throwable)
-                            _firstLoadDatabaseStatus.postValue(FirstLoadStatus.ERROR)
+                            _firstLoadDatabaseStatus.postValue(DataBaseLoadingState.Error(state.throwable))
                         }
                         is DataState.Loading -> {
-                            if (!state.status) {
-                                subscribeToSocketEvents()
-                                _firstLoadDatabaseStatus.postValue(FirstLoadStatus.LOADED)
+                            if (state.status) {
+                                _firstLoadDatabaseStatus.postValue(DataBaseLoadingState.Loading)
                             } else {
-                                _firstLoadDatabaseStatus.postValue(FirstLoadStatus.START_LOADING)
+                                _firstLoadDatabaseStatus.postValue(DataBaseLoadingState.Loaded)
+                                subscribeToSocketEvents()
                             }
                         }
                         is DataState.Success -> {
@@ -135,7 +130,7 @@ class SharedViewModel(
                     }
                 }
             } else {
-                _firstLoadDatabaseStatus.postValue(FirstLoadStatus.LOADED)
+                _firstLoadDatabaseStatus.postValue(DataBaseLoadingState.Loaded)
                 subscribeToSocketEvents()
             }
         }
