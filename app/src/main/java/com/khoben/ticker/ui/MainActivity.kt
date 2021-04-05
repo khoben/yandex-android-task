@@ -43,17 +43,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
-        sharedViewModel.firstLoadDatabaseStatus.observe(this, { loadingStatus ->
-            when (loadingStatus) {
-                FirstLoadStatus.START_LOADING -> {
-                    binding.loading.root.visibility = View.VISIBLE
-                }
-                FirstLoadStatus.LOADED -> {
-                    binding.loading.root.visibility = View.GONE
-                    sharedViewModel.subscribeToSocketEvents()
-                }
-            }
-        })
         sharedViewModel.stockClicked.observe(this, { clickedStock ->
             if (clickedStock != null) {
                 val stockFragment = supportFragmentManager.findFragmentByTag(StockViewFragment.TAG)

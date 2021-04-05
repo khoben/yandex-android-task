@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.google.android.material.transition.MaterialFadeThrough
 import com.khoben.ticker.databinding.MainFragmentBinding
+import com.khoben.ticker.model.FirstLoadStatus
 import com.khoben.ticker.ui.viewpager.FragmentViewPagerAdapter
 import com.khoben.ticker.ui.viewpager.favourite.FavoriteStockFragment
 import com.khoben.ticker.ui.viewpager.main.MainStockFragment
@@ -38,6 +39,23 @@ class MainFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         initClickListeners()
         initViewPager()
+        initObservables()
+    }
+
+    private fun initObservables() {
+        sharedViewModel.firstLoadDatabaseStatus.observe(viewLifecycleOwner, { loadingStatus ->
+            when (loadingStatus) {
+                FirstLoadStatus.START_LOADING -> {
+                    binding.loading.root.visibility = View.VISIBLE
+                }
+                FirstLoadStatus.LOADED -> {
+                    binding.loading.root.visibility = View.GONE
+                    sharedViewModel.subscribeToSocketEvents()
+                }
+                null -> {
+                }
+            }
+        })
     }
 
     override fun onDestroyView() {

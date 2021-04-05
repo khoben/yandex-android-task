@@ -5,6 +5,7 @@
     android:layout_height="match_parent"
     app:layoutDescription="@xml/activity_main_scene">
 
+
     <EditText
         android:id="@+id/search_field"
         android:layout_width="match_parent"
@@ -17,16 +18,26 @@
         android:drawableStart="@drawable/ic_search"
         android:drawablePadding="10dp"
         android:focusableInTouchMode="false"
-        android:textColorHint="?colorControlHighlight"
         android:forceDarkAllowed="false"
         android:hint="Find company or ticker"
         android:inputType="text"
         android:maxLines="1"
         android:padding="15dp"
+        android:textColorHint="?colorControlHighlight"
         app:drawableTint="?colorOnSurface"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <include
+        android:id="@+id/loading"
+        layout="@layout/loading_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/search_field" />
 
     <com.khoben.ticker.ui.component.TickerTabLayout
         android:id="@+id/tab_layout"
@@ -34,16 +45,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        app:tabGravity="start"
-        app:tabMode="scrollable"
-        app:tabIndicatorHeight="0dp"
-        app:tabRippleColor="@null"
-        app:tabTextAppearance="@style/TickerAppTabStyle"
         app:layout_constraintBottom_toTopOf="@+id/view_pager"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/search_field"
-        />
+        app:layout_constraintTop_toBottomOf="@+id/loading"
+        app:tabGravity="start"
+        app:tabIndicatorHeight="0dp"
+        app:tabMode="scrollable"
+        app:tabRippleColor="@null"
+        app:tabTextAppearance="@style/TickerAppTabStyle" />
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager"
